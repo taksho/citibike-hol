@@ -5,9 +5,9 @@
 -- コマンドで操作する場合は以下を順に実行
 
 -- use role sysadmin;
-create database citibike;
+create database citibike_hol;
 
-use database citibike;
+use database citibike_hol;
 use schema public;
 use warehouse compute_wh;
 
@@ -51,7 +51,7 @@ create or replace file format csv type='csv'
 
 -- 作成した File Format を確認
 
-show file formats in database citibike;
+-- show file formats in database citibike_hol;
 
 
 /*******************************************************************************
@@ -60,27 +60,27 @@ show file formats in database citibike;
 
 -- 外部ステージからのデータロード
 
-copy into trips from @citibike_trips file_format=csv PATTERN = '.*csv.*' ;
+-- copy into trips from @citibike_trips file_format=csv PATTERN = '.*csv.*' ;
 
 -- Trips テーブルにロードした全てのデータ、メタデータを削除
 
-truncate table trips;
+-- truncate table trips;
 
 -- Trips テーブルの内容確認
 
-select * from trips limit 10;
+-- select * from trips limit 10;
 
 -- ウェアハウスサイズをコマンドで変更する場合は以下
 
-alter warehouse compute_wh set warehouse_size='large';
+-- alter warehouse compute_wh set warehouse_size='large';
 
 -- ウェアハウスの確認
 
-show warehouses;
+-- show warehouses;
 
 -- 外部ステージからのデータロード
 
-copy into trips from @citibike_trips file_format=csv PATTERN = '.*csv.*' ;
+-- copy into trips from @citibike_trips file_format=csv PATTERN = '.*csv.*' ;
 
 
 /*******************************************************************************
@@ -89,30 +89,30 @@ copy into trips from @citibike_trips file_format=csv PATTERN = '.*csv.*' ;
 
 -- Trips テーブルの内容確認
 
-select * from trips limit 20;
+-- select * from trips limit 20;
 
 -- Citibike の使用状況に関する1時間ごとの基本統計量を確認
 -- 確認内容：移動回数、平均移動時間、平均移動距離
 
-select date_trunc('hour', starttime) as "date",
-count(*) as "num trips",
-avg(tripduration)/60 as "avg duration (mins)",
-avg(haversine(start_station_latitude, start_station_longitude, end_station_latitude, end_station_longitude)) as "avg distance (km)"
-from trips
-group by 1 order by 1;
+-- select date_trunc('hour', starttime) as "date",
+-- count(*) as "num trips",
+-- avg(tripduration)/60 as "avg duration (mins)",
+-- avg(haversine(start_station_latitude, start_station_longitude, end_station_latitude, end_station_longitude)) as "avg distance (km)"
+-- from trips
+-- group by 1 order by 1;
 
 -- リザルトキャッシュの利用テスト（同じクエリを実行）
 
-select date_trunc('hour', starttime) as "date",
-count(*) as "num trips",
-avg(tripduration)/60 as "avg duration (mins)",
-avg(haversine(start_station_latitude, start_station_longitude, end_station_latitude, end_station_longitude)) as "avg distance (km)"
-from trips
-group by 1 order by 1;
+-- select date_trunc('hour', starttime) as "date",
+-- count(*) as "num trips",
+-- avg(tripduration)/60 as "avg duration (mins)",
+-- avg(haversine(start_station_latitude, start_station_longitude, end_station_latitude, end_station_longitude)) as "avg distance (km)"
+-- from trips
+-- group by 1 order by 1;
 
 -- Trips テーブルのゼロコピークローン Trips_dev の作成
 
-create table trips_dev clone trips;
+-- create table trips_dev clone trips;
 
 
 /*******************************************************************************
@@ -121,7 +121,7 @@ create table trips_dev clone trips;
 
 -- Weather データベースの作成
 
-create database weather;
+create database weather_hol;
 
 -- USE コマンドでのコンテキスト設定
 
@@ -141,17 +141,17 @@ url = 's3://snowflake-workshop-lab/zero-weather-nyc';
 
 -- 作成したステージのファイルリスト表示
 
-list @nyc_weather;
+-- list @nyc_weather;
 
 -- 半構造化データ（JSON）のロード
 
-copy into json_weather_data
-from @nyc_weather 
-    file_format = (type = json strip_outer_array = true);
+-- copy into json_weather_data
+-- from @nyc_weather 
+--     file_format = (type = json strip_outer_array = true);
 
 -- ロードした JSON データの確認
 
-select * from json_weather_data limit 10;
+-- select * from json_weather_data limit 10;
 
 -- 半構造化データを取り扱いやすい形に構造化して利用するためのビュー作成
 
@@ -180,19 +180,19 @@ where
 
 -- 作成したビューの確認
 
-select * from json_weather_data_view
-where date_trunc('month',observation_time) = '2018-01-01'
-limit 20;
+-- select * from json_weather_data_view
+-- where date_trunc('month',observation_time) = '2018-01-01'
+-- limit 20;
 
 -- Trips データと Weather データの結合
 
-select weather_conditions as conditions
-        ,count(*) as num_trips
-from citibike.public.trips
-left outer join json_weather_data_view
-on date_trunc('hour', observation_time) = date_trunc('hour', starttime)
-where conditions is not null
-group by 1 order by 2 desc;
+-- select weather_conditions as conditions
+--         ,count(*) as num_trips
+-- from citibike.public.trips
+-- left outer join json_weather_data_view
+-- on date_trunc('hour', observation_time) = date_trunc('hour', starttime)
+-- where conditions is not null
+-- group by 1 order by 2 desc;
 
 
 /*******************************************************************************
@@ -201,63 +201,63 @@ group by 1 order by 2 desc;
 
 -- テーブルのドロップ
 
-drop table json_weather_data;
+-- drop table json_weather_data;
 
 -- ドロップされているかテーブル確認 -> エラー発生が正常
 
-select * from json_weather_data limit 10;
+-- select * from json_weather_data limit 10;
 
 -- Undrop でテーブルを復元
 
-undrop table json_weather_data;
+-- undrop table json_weather_data;
 
 -- テーブルが復元されているかを確認
 
-select * from json_weather_data limit 10;
+-- select * from json_weather_data limit 10;
 
 -- USE コマンドでのコンテキスト設定
 
 -- use role sysadmin;
-use warehouse compute_wh;
-use database citibike;
-use schema public;
+-- use warehouse compute_wh;
+-- use database citibike;
+-- use schema public;
 
 -- 意図的に誤った Update 処理を実行（全てのステーション名を「oops」に変更）
 
-update trips set start_station_name = 'oops';
+-- update trips set start_station_name = 'oops';
 
 -- Update 結果の確認（乗車回数の上位20駅を確認するクエリを実行）-> 結果が1行しか返ってこない
 
-select
-    start_station_name as "station"
-    ,count(*) as "rides"
-from trips
-group by 1
-order by 2 desc
-limit 20;
+-- select
+--     start_station_name as "station"
+--     ,count(*) as "rides"
+-- from trips
+-- group by 1
+-- order by 2 desc
+-- limit 20;
 
 -- Update 結果を戻すため、直近で実行された Update コマンドのクエリIDを検索し、変数 $QUERY_ID に格納
 
-set query_id =
-    (select query_id 
-     from table(information_schema.query_history_by_session (result_limit=>5))
-     where query_text like 'update%'
-     order by start_time desc limit 1);
+-- set query_id =
+--     (select query_id 
+--      from table(information_schema.query_history_by_session (result_limit=>5))
+--      where query_text like 'update%'
+--      order by start_time desc limit 1);
 
 -- タイムトラベルを使用して、Update 前の状態でテーブルを再作成
 
-create or replace table trips as
-(select * from trips before (statement => $query_id));
+-- create or replace table trips as
+-- (select * from trips before (statement => $query_id));
 
 -- 再作成したテーブルでステーション名が復元されているか確認
 
-select
-    start_station_name as "station"
-    ,count(*) as "rides"
-from trips
-group by 1
-order by 2 desc
-limit 20;
+-- select
+--     start_station_name as "station"
+--     ,count(*) as "rides"
+-- from trips
+-- group by 1
+-- order by 2 desc
+-- limit 20;
 
 
 /*******************************************************************************
@@ -266,36 +266,36 @@ limit 20;
 
 -- USE コマンドで Accountadmin を操作
 
-use role accountadmin;
+-- use role accountadmin;
 
 -- 新しいロール Junior_DBA を作成し、自分に割り当て
 
-create role junior_dba;
-grant role junior_dba to user tshoji;
+-- create role junior_dba;
+-- grant role junior_dba to user tshoji;
 
 -- 作成、割り当てした Junior_DBA へ変更 -> ウェアハウスやデータベースの使用権限を確認
 
-use role junior_dba;
+-- use role junior_dba;
 
 -- Accountadmin へ変更し、compute_wh の使用権限を Junior_DBA へ付与
 
-use role accountadmin;
-grant usage on warehouse compute_wh to role junior_dba;
+-- use role accountadmin;
+-- grant usage on warehouse compute_wh to role junior_dba;
 
 -- Junior_DBA へ変更し、使用できるウェアハウスを確認
 
-use role junior_dba;
-use warehouse compute_wh;
+-- use role junior_dba;
+-- use warehouse compute_wh;
 
 -- Accountadmin へ変更し、CITIBIKE, Weather データベースの使用権限を Junior_DBA へ付与
 
-use role accountadmin;
-grant usage on database citibike to role junior_dba;
-grant usage on database weather to role junior_dba;
+-- use role accountadmin;
+-- grant usage on database citibike to role junior_dba;
+-- grant usage on database weather to role junior_dba;
 
 -- Junior_DBA へ変更し、使用できるデータベースを確認
 
-use role junior_dba;
+-- use role junior_dba;
 
 
 /*******************************************************************************
@@ -304,12 +304,12 @@ use role junior_dba;
 
 -- Accountadmin を使用して、今回作成した全てのオブジェクトを削除
 
-use role accountadmin;
+-- use role accountadmin;
 
-drop share if exists zero_to_snowflake_shared_data;
+-- drop share if exists zero_to_snowflake_shared_data;
 -- 必要に応じて、"zero_to_snowflake-shared_data" を共有に使用した名前に置き換え
-drop database if exists citibike;
-drop database if exists weather;
-drop warehouse if exists analytics_wh;
-drop warehouse if exists compute_wh;
-drop role if exists junior_dba;
+-- drop database if exists citibike_hol;
+-- drop database if exists weather_hol;
+-- drop warehouse if exists analytics_wh;
+-- drop warehouse if exists compute_wh;
+-- drop role if exists junior_dba;
