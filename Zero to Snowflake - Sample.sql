@@ -5,9 +5,9 @@
 -- コマンドで操作する場合は以下を順に実行
 
 -- use role sysadmin;
-create or replace database citibike_hol;
+create database citibike;
 
-use database citibike_hol;
+use database citibike;
 use schema public;
 use warehouse compute_wh;
 
@@ -51,7 +51,7 @@ create or replace file format csv type='csv'
 
 -- 作成した File Format を確認
 
-show file formats in database citibike_hol;
+show file formats in database citibike;
 
 
 /*******************************************************************************
@@ -121,13 +121,13 @@ create table trips_dev clone trips;
 
 -- Weather データベースの作成
 
-create database weather_hol;
+create database weather;
 
 -- USE コマンドでのコンテキスト設定
 
 -- use role sysadmin;
 use warehouse compute_wh;
-use database weather_hol;
+use database weather;
 use schema public;
 
 -- JSON データロード用テーブルの作成 -> Variant 型
@@ -188,7 +188,7 @@ limit 20;
 
 select weather_conditions as conditions
         ,count(*) as num_trips
-from citibike_hol.public.trips
+from citibike.public.trips
 left outer join json_weather_data_view
 on date_trunc('hour', observation_time) = date_trunc('hour', starttime)
 where conditions is not null
@@ -219,7 +219,7 @@ select * from json_weather_data limit 10;
 
 -- use role sysadmin;
 use warehouse compute_wh;
-use database citibike_hol;
+use database citibike;
 use schema public;
 
 -- 意図的に誤った Update 処理を実行（全てのステーション名を「oops」に変更）
@@ -290,8 +290,8 @@ use warehouse compute_wh;
 -- Accountadmin へ変更し、CITIBIKE, Weather データベースの使用権限を Junior_DBA へ付与
 
 use role accountadmin;
-grant usage on database citibike_hol to role junior_dba;
-grant usage on database weather_hol to role junior_dba;
+grant usage on database citibike to role junior_dba;
+grant usage on database weather to role junior_dba;
 
 -- Junior_DBA へ変更し、使用できるデータベースを確認
 
@@ -302,16 +302,14 @@ use role junior_dba;
     11. Snowflake 環境のリセット
 *******************************************************************************/
 
-/*
 -- Accountadmin を使用して、今回作成した全てのオブジェクトを削除
 
 use role accountadmin;
 
 drop share if exists zero_to_snowflake_shared_data;
 -- 必要に応じて、"zero_to_snowflake-shared_data" を共有に使用した名前に置き換え
-drop database if exists citibike_hol;
-drop database if exists weather_hol;
+drop database if exists citibike;
+drop database if exists weather;
 drop warehouse if exists analytics_wh;
 drop warehouse if exists compute_wh;
 drop role if exists junior_dba;
-*/
